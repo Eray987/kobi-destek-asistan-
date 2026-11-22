@@ -1,0 +1,43 @@
+# Runs lint and tests on every push and pull request.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      # Database tests must not be skipped in CI
+      CI_REQUIRE_DB: "1"
+      POSTGRES_PASSWORD: kobi_password
+    services:
+      # Throwaway pgvector database on the GitHub runner
+      db:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: kobi
+          POSTGRES_PASSWORD: kobi_password
+          POSTGRES_DB: kobi_asistan
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kobi -d kobi_asistan"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+      - name: Enable pgvector
+        run: psql "postgresql://kobi:kobi_password@localhost:5432/kobi_asistan" -c "CREATE EXTENSION IF NOT EXISTS vector;"
+      - name: Lint (ruff)
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Tests (pytest)
+        run: pytest -v

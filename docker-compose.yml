@@ -1,0 +1,27 @@
+# Runs PostgreSQL + pgvector with a single command:
+#   docker compose up -d      -> start in the background
+#   docker compose ps         -> show status
+#   docker compose down       -> stop (data is kept)
+#   docker compose down -v    -> stop and delete data
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: kobi-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kobi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kobi_password}
+      POSTGRES_DB: ${POSTGRES_DB:-kobi_asistan}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # .sql files in this folder run once, when the database is first created
+      - ./docker/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

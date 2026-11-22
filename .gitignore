@@ -1,0 +1,15 @@
+# Virtual environment and Python caches
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Secrets: API keys must NEVER be committed
+.env
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
