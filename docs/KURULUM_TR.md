@@ -7,12 +7,15 @@ anlamak için Türkçe bir rehberdir. Ana doküman İngilizce [README](../README
 
 Gerekenler: Python 3.11+, Git, [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
+macOS'un kendi Python'u genelde eskidir (`python3 --version` ile bak). 3.11'den eskiyse
+[Homebrew](https://brew.sh) ile yenisini kur: `brew install python@3.12`, sonra kurulumda
+`make install PYTHON=python3.12` kullan.
+
 ```bash
 git clone https://github.com/Eray987/kobi-destek-asistan-.git
 cd kobi-destek-asistan-
 
-cp .env.example .env     # ayar dosyasını oluştur
-make install             # .venv sanal ortamı + bağımlılıklar
+make install             # .venv + bağımlılıklar + .env (gerekirse PYTHON=python3.12 ekle)
 make db-up               # Docker ile PostgreSQL + pgvector
 make db-check            # "Connected" görmelisin
 make data                # kaynak sayfaları indir (data/raw/ ve data/legislation/)

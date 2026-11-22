@@ -30,20 +30,20 @@ docs/                 Additional documentation
 ## Getting started (macOS / Linux)
 
 Requirements: Python 3.11+, Git, [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+macOS ships an older Python; install a newer one with `brew install python@3.12` and pass it as `make install PYTHON=python3.12`.
 
 ```bash
 git clone https://github.com/Eray987/kobi-destek-asistan-.git
 cd kobi-destek-asistan-
 
-cp .env.example .env     # create your local settings file
-make install             # .venv virtual environment + dependencies
+make install             # .venv + dependencies + .env (add PYTHON=python3.12 if needed)
 make db-up               # PostgreSQL + pgvector via Docker
 make db-check            # should print "Connected"
 make data                # download the source documents
 make test                # all tests should pass
 ```
 
-Every `make` target is a plain shell command in the [`Makefile`](Makefile) if you prefer to run it directly.
+Any target creates the virtual environment automatically if it is missing. Every `make` target is a plain shell command in the [`Makefile`](Makefile) if you prefer to run it directly.
 
 ## Data
 
