@@ -10,15 +10,18 @@ The assistant answers customer questions in Turkish **only from the company's ow
 
 - [x] 1. Repository and engineering foundation
 - [x] 2. Real-world source documents (source list + download script) + 25-question pilot test set
-  - [ ] Hand-verify all 25 questions (`verified: true`)
+  - [x] Hand-verify all 25 questions (`verified: true`)
 - [ ] 3. Baseline retrieval (dense vector search only), Recall@5 and MRR
+  - [x] Fixed-size chunking, dense search, evaluation script (`make eval`)
+  - [ ] First baseline results committed to `results/retrieval/`
 - [ ] 4. LLM answers with citations + human hand-off, FastAPI `/ask` endpoint
 
 ## Project layout
 
 ```
 src/kobi_asistan/     Application code
-  data/               Source parsing and test-set validation
+  data/               Source parsing, corpus loading and test-set validation
+  retrieval/          Chunking, dense search and retrieval metrics
 tests/                Automated tests (pytest)
 scripts/              Helper scripts run by hand
 data/                 Source list, legislation texts and the evaluation set
@@ -54,11 +57,27 @@ Documents come from a real Turkish e-commerce help centre and from the Turkish D
 - Each document starts with its source URL and access date. Every FAQ entry and every legal article is a section with a stable ID (`faq-64`, `article-12`), which the test set points to as evidence.
 - Evaluation set: [`data/testset/`](data/testset/). Questions are in Turkish by design.
 
+## Experiments
+
+`make eval` runs the baseline retrieval experiment: fixed-size chunks (120 words, 20 overlap),
+`intfloat/multilingual-e5-small` embeddings, cosine top-5 search in NumPy. It scores every
+verified answerable question against its gold evidence sections and writes
+`results/retrieval/<name>.json` and `.md`:
+
+- **Recall@k (any)**: at least one gold section in the top k chunks
+- **Recall@k (all)**: every gold section in the top k (matters for multi-evidence questions)
+- **MRR@k**: mean of 1 / rank of the first chunk containing a gold section
+- p50/p95 query latency, plus a list of failed questions for error analysis
+
+Options: `.venv/bin/python scripts/evaluate_retrieval.py --help` (chunk size, overlap, k, model, run name).
+Result files contain only chunk and section IDs, never company text, so they are safe to commit.
+
 ## Tech stack and why
 
 | Tool | Purpose |
 |---|---|
 | **Python 3.11+** | Main language; the first RAG baseline is plain Python so every experiment's change stays visible |
+| **sentence-transformers + NumPy** | Multilingual embeddings and in-memory cosine search for the baseline (installed via the `ml` extra) |
 | **PostgreSQL + pgvector** | Documents, versions and embeddings in one database, with vector similarity search |
 | **Docker Compose** | Runs the database identically on any machine with one command |
 | **pytest** | Unit and integration tests; also validates the evaluation set on every run |

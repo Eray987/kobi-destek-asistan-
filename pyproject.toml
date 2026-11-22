@@ -14,9 +14,14 @@ dependencies = [
     "requests>=2.31",
     "beautifulsoup4>=4.12",
     "pyyaml>=6.0",
+    "numpy>=1.26",
 ]
 
 [project.optional-dependencies]
+# Embedding models (pulls in PyTorch, ~1 GB). Not needed for the unit tests or CI.
+ml = [
+    "sentence-transformers>=3.0",
+]
 dev = [
     "pytest>=8.0",
     "ruff>=0.8",

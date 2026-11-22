@@ -30,6 +30,13 @@ make test                # tüm testler geçmeli
 - Test seti: `data/testset/questions_v0.jsonl`. Sorular yapay zekâ yardımıyla hazırlandı ve hepsi
   `verified: false`. Her satırı indirilen metinle karşılaştır, doğruysa `true` yap.
 
+## Deneyler
+
+`make eval` ilk arama deneyini çalıştırır: dokümanlar 120 kelimelik parçalara bölünür, çok dilli
+bir embedding modeliyle vektöre çevrilir ve her soru için en benzer 5 parça bulunur. Sonuçlar
+`results/retrieval/` altına yazılır (Recall@5, MRR, kategori bazında tablo ve bulunamayan sorular).
+İlk çalıştırmada model (~470 MB) ve PyTorch indirilir, birkaç dakika sürebilir.
+
 ## Hangi araç ne işe yarıyor?
 
 | Araç | Ne işe yarar? | Neden bu projede? |

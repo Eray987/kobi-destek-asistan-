@@ -2,7 +2,7 @@
 #
 # The virtual environment is created automatically on first use.
 # To pick a specific interpreter:  make install PYTHON=python3.12
-.PHONY: install db-up db-down db-check data review test format check
+.PHONY: install db-up db-down db-check data review eval test format check
 
 PYTHON ?= python3
 VENV := .venv
@@ -19,7 +19,7 @@ $(STAMP): pyproject.toml
 		exit 1; }
 	$(PYTHON) -m venv $(VENV)
 	$(BIN)/pip install --upgrade pip
-	$(BIN)/pip install -e ".[dev]"
+	$(BIN)/pip install -e ".[dev,ml]"
 	@test -f .env || { cp .env.example .env && echo "Created .env from .env.example"; }
 	@touch $(STAMP)
 
@@ -37,6 +37,9 @@ data: $(STAMP)     ## Download the source pages and convert them to Markdown (da
 
 review: $(STAMP)   ## Show unverified test-set questions next to their evidence
 	$(BIN)/python scripts/review_testset.py
+
+eval: $(STAMP)     ## Baseline retrieval experiment -> results/retrieval/
+	$(BIN)/python scripts/evaluate_retrieval.py
 
 test: $(STAMP)     ## Run the tests
 	$(BIN)/pytest -v
