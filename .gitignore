@@ -6,6 +6,10 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
+# Şirket sitelerinden indirilen metinler: telif şirkete ait, repoya girmez.
+# Herkes `python scripts/kaynaklari_indir.py` ile kendi bilgisayarına indirir.
+data/raw/
+
 # Gizli bilgiler: API anahtarları ASLA Git'e girmez
 .env
 

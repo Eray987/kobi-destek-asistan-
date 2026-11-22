@@ -1,0 +1,41 @@
+# Veri setinin kaynak listesi.
+#
+# Şirket sayfalarının metni repoya KONMAZ (telif şirkete aittir). Repoda yalnızca
+# bu liste ve indirme betiği bulunur. Metinleri indirmek için:
+#
+#     python scripts/kaynaklari_indir.py
+#
+# Alanlar:
+#   doc_id       Dokümanın kalıcı kimliği. Test setindeki kanıtlar buna bağlanır, değiştirme.
+#   url          Sayfanın adresi
+#   ayristirici  Sayfanın nasıl metne çevrileceği: idefix_sss | html_main | mevzuat
+#   erisim       Sayfanın kontrol edildiği tarih
+#   lisans       sirket: repoya girmez (data/raw/) | resmi_metin: repoya girebilir (data/mevzuat/)
+
+magazalar:
+  - id: idefix
+    ad: idefix
+    tur: e-ticaret pazaryeri (kitap, elektronik, hobi)
+    not: >
+      Yardım merkezindeki tüm SSS kategorileri tek sayfanın verisinde geliyor;
+      idefix_sss ayrıştırıcısı her kategoriyi ayrı doküman olarak yazar
+      (idefix-odeme, idefix-teslimat, idefix-iade-ve-degisim, ...).
+    kaynaklar:
+      - doc_id: idefix-sss
+        url: https://www.idefix.com/yardim/teslimat-5
+        ayristirici: idefix_sss
+        erisim: "2026-11-22"
+        lisans: sirket
+      - doc_id: idefix-iade-kosullari
+        url: https://www.idefix.com/product_detail_return_info
+        ayristirici: html_main
+        erisim: "2026-11-22"
+        lisans: sirket
+
+mevzuat:
+  - doc_id: msy
+    ad: Mesafeli Sözleşmeler Yönetmeliği
+    url: https://www.mevzuat.gov.tr/anasayfa/MevzuatFihristDetayIframe?MevzuatTur=7&MevzuatNo=20237&MevzuatTertip=5
+    ayristirici: mevzuat
+    erisim: "2026-11-22"
+    lisans: resmi_metin  # FSEK md. 31: kanun ve yönetmelikler serbestçe çoğaltılabilir

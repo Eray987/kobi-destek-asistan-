@@ -7,7 +7,8 @@ Asistan müşteri sorularını yalnızca şirketin kendi dokümanlarına dayanar
 ## Yol haritası
 
 - [x] 1. Repo ve mühendislik altyapısı
-- [ ] 2. Kurgusal mağaza dokümanları + 25 soruluk elle doğrulanmış test seti
+- [x] 2. Gerçek mağaza sayfaları (kaynak listesi + indirme betiği) + 25 soruluk pilot test seti
+  - [ ] Test setindeki 25 sorunun elle doğrulanması (`verified: true`)
 - [ ] 3. Baseline retrieval (yalnızca vektör araması), Recall@5 ve MRR
 - [ ] 4. LLM ile kaynaklı cevap + temsilciye aktarma, FastAPI `/ask` ucu
 
@@ -39,6 +40,21 @@ make test                # tüm testler geçmeli
 ```
 
 `make` kullanmak istemezsen her hedefin karşılığı `Makefile` içinde açıkça yazıyor.
+
+## Veri
+
+Dokümanlar gerçek bir e-ticaret sitesinin yardım sayfalarından ve Mesafeli Sözleşmeler
+Yönetmeliği'nden geliyor. Şirket metinlerinin telifi şirkete ait olduğu için **repoya konmaz**:
+repoda yalnızca kaynak listesi ([`data/sources.yaml`](data/sources.yaml)) ve indirme betiği var.
+Metinleri kendi bilgisayarına indirmek için:
+
+```bash
+make veri    # = python scripts/kaynaklari_indir.py
+```
+
+Çıktılar: `data/raw/<magaza>/*.md` (Git dışında) ve `data/mevzuat/*.md` (resmî metin, FSEK md. 31).
+Her dokümanın başında kaynak URL'si ve erişim tarihi yazar; her SSS ve kanun maddesi kalıcı bir
+kimlikle (`faq-64`, `madde-12`) ayrı bölümdür. Test seti: [`data/test_seti/`](data/test_seti/).
 
 ## Hangi araç ne işe yarıyor?
 
