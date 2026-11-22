@@ -6,6 +6,10 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
+# Text downloaded from company websites: copyright belongs to the company, never committed.
+# Everyone downloads it locally with `make data`.
+data/raw/
+
 # Secrets: API keys must NEVER be committed
 .env
 

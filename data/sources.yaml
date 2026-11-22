@@ -1,0 +1,41 @@
+# Source list for the data set.
+#
+# Company page texts are NOT committed (copyright belongs to the company). The repository
+# only holds this list and the download script. To download the texts:
+#
+#     make data        # = python scripts/download_sources.py
+#
+# Fields:
+#   doc_id    Stable document ID. Test-set evidence points to it; do not change.
+#   url       Page address
+#   parser    How the page is turned into text: idefix_faq | html_main | legislation
+#   accessed  Date the page was last checked
+#   license   company: never committed (data/raw/) | official_text: may be committed (data/legislation/)
+
+stores:
+  - id: idefix
+    name: idefix
+    kind: e-commerce marketplace (books, electronics, hobby)
+    note: >
+      All help-centre FAQ categories arrive in a single page's embedded data; the
+      idefix_faq parser writes each category as its own document
+      (idefix-odeme, idefix-teslimat, idefix-iade-ve-degisim, ...).
+    sources:
+      - doc_id: idefix-faq
+        url: https://www.idefix.com/yardim/teslimat-5
+        parser: idefix_faq
+        accessed: "2026-11-22"
+        license: company
+      - doc_id: idefix-iade-kosullari
+        url: https://www.idefix.com/product_detail_return_info
+        parser: html_main
+        accessed: "2026-11-22"
+        license: company
+
+legislation:
+  - doc_id: msy
+    name: Mesafeli Sözleşmeler Yönetmeliği (Distance Contracts Regulation)
+    url: https://www.mevzuat.gov.tr/anasayfa/MevzuatFihristDetayIframe?MevzuatTur=7&MevzuatNo=20237&MevzuatTertip=5
+    parser: legislation
+    accessed: "2026-11-22"
+    license: official_text  # FSEK art. 31: laws and regulations may be freely reproduced

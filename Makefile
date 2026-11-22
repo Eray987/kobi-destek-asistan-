@@ -1,5 +1,5 @@
 # Shortcuts for common commands. Example: make test
-.PHONY: install db-up db-down db-check test format check
+.PHONY: install db-up db-down db-check data test format check
 
 install:    ## Create the virtual environment and install dependencies
 	python3 -m venv .venv
@@ -13,6 +13,9 @@ db-down:    ## Stop the database
 
 db-check:   ## Try the database connection
 	.venv/bin/python scripts/check_db.py
+
+data:       ## Download the source pages and convert them to Markdown (data/sources.yaml)
+	.venv/bin/python scripts/download_sources.py
 
 test:       ## Run the tests
 	.venv/bin/pytest -v

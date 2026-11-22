@@ -15,8 +15,17 @@ cp .env.example .env     # ayar dosyasını oluştur
 make install             # .venv sanal ortamı + bağımlılıklar
 make db-up               # Docker ile PostgreSQL + pgvector
 make db-check            # "Connected" görmelisin
+make data                # kaynak sayfaları indir (data/raw/ ve data/legislation/)
 make test                # tüm testler geçmeli
 ```
+
+## Veri ve test seti
+
+- Şirket sayfalarının metni telif nedeniyle repoya girmez. `make data` onları
+  `data/raw/<magaza>/` altına indirir (bu klasör `.gitignore`'da).
+- Kanun ve yönetmelik metinleri resmî metin olduğu için `data/legislation/` altında repoya girebilir.
+- Test seti: `data/testset/questions_v0.jsonl`. Sorular yapay zekâ yardımıyla hazırlandı ve hepsi
+  `verified: false`. Her satırı indirilen metinle karşılaştır, doğruysa `true` yap.
 
 ## Hangi araç ne işe yarıyor?
 
