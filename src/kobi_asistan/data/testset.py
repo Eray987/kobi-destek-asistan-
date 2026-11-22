@@ -5,6 +5,7 @@ against these rules; the checks run on every `pytest` run.
 """
 
 import json
+import re
 from pathlib import Path
 
 CATEGORIES = {
@@ -74,3 +75,36 @@ def find_errors(questions: list[dict]) -> list[str]:
             elif item.split("#")[0] not in q["supporting_doc_ids"]:
                 errors.append(f"{qid}: evidence '{item}' is not listed in supporting_doc_ids")
     return errors
+
+
+_SECTION_HEADING = re.compile(r"^## \[([^\]]+)\] ?(.*)$")
+
+
+def load_sections(*folders: Path) -> dict[str, tuple[str, str]]:
+    """Reads the downloaded Markdown documents into {"doc_id#section_id": (title, text)}."""
+    sections: dict[str, tuple[str, str]] = {}
+    for folder in folders:
+        for path in sorted(folder.rglob("*.md")):
+            doc_id = path.stem
+            key, title, lines = None, "", []
+            for line in path.read_text(encoding="utf-8").splitlines():
+                match = _SECTION_HEADING.match(line)
+                if match:
+                    if key:
+                        sections[key] = (title, "\n".join(lines).strip())
+                    key, title, lines = f"{doc_id}#{match.group(1)}", match.group(2), []
+                elif key:
+                    lines.append(line)
+            if key:
+                sections[key] = (title, "\n".join(lines).strip())
+    return sections
+
+
+def missing_evidence(questions: list[dict], sections: dict[str, tuple[str, str]]) -> list[str]:
+    """Evidence IDs that do not exist in the downloaded documents."""
+    return [
+        f"{q['id']}: {item}"
+        for q in questions
+        for item in q["supporting_section_ids"]
+        if item not in sections
+    ]

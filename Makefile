@@ -2,7 +2,7 @@
 #
 # The virtual environment is created automatically on first use.
 # To pick a specific interpreter:  make install PYTHON=python3.12
-.PHONY: install db-up db-down db-check data test format check
+.PHONY: install db-up db-down db-check data review test format check
 
 PYTHON ?= python3
 VENV := .venv
@@ -34,6 +34,9 @@ db-check: $(STAMP)  ## Try the database connection
 
 data: $(STAMP)     ## Download the source pages and convert them to Markdown (data/sources.yaml)
 	$(BIN)/python scripts/download_sources.py
+
+review: $(STAMP)   ## Show unverified test-set questions next to their evidence
+	$(BIN)/python scripts/review_testset.py
 
 test: $(STAMP)     ## Run the tests
 	$(BIN)/pytest -v
