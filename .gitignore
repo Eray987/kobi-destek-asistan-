@@ -1,0 +1,15 @@
+# Sanal ortam ve Python önbellekleri
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Gizli bilgiler: API anahtarları ASLA Git'e girmez
+.env
+
+# Editör / işletim sistemi
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,27 @@
+# PostgreSQL + pgvector veritabanını tek komutla çalıştırır:
+#   docker compose up -d      -> arka planda başlat
+#   docker compose ps         -> durumunu gör
+#   docker compose down       -> durdur (veriler korunur)
+#   docker compose down -v    -> durdur ve verileri sil
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: kobi-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kobi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kobi_sifre}
+      POSTGRES_DB: ${POSTGRES_DB:-kobi_asistan}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Veritabanı ilk kez oluşturulurken bu klasördeki .sql dosyaları çalışır
+      - ./docker/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
