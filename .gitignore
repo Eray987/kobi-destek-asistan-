@@ -1,4 +1,4 @@
-# Sanal ortam ve Python önbellekleri
+# Virtual environment and Python caches
 .venv/
 __pycache__/
 *.pyc
@@ -6,14 +6,14 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
-# Şirket sitelerinden indirilen metinler: telif şirkete ait, repoya girmez.
-# Herkes `python scripts/kaynaklari_indir.py` ile kendi bilgisayarına indirir.
+# Text downloaded from company websites: copyright belongs to the company, never committed.
+# Everyone downloads it locally with `make data`.
 data/raw/
 
-# Gizli bilgiler: API anahtarları ASLA Git'e girmez
+# Secrets: API keys must NEVER be committed
 .env
 
-# Editör / işletim sistemi
+# Editor / OS
 .vscode/
 .idea/
 .DS_Store
