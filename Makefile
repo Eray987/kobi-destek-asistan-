@@ -1,27 +1,27 @@
-# Sık kullanılan komutların kısayolları. Örnek: make test
-.PHONY: kurulum db-baslat db-durdur db-kontrol test format kontrol
+# Shortcuts for common commands. Example: make test
+.PHONY: install db-up db-down db-check test format check
 
-kurulum:    ## Sanal ortamı oluştur ve bağımlılıkları kur
+install:    ## Create the virtual environment and install dependencies
 	python3 -m venv .venv
 	.venv/bin/pip install -e ".[dev]"
 
-db-baslat:  ## PostgreSQL + pgvector'ü Docker ile başlat
+db-up:      ## Start PostgreSQL + pgvector with Docker
 	docker compose up -d
 
-db-durdur:  ## Veritabanını durdur
+db-down:    ## Stop the database
 	docker compose down
 
-db-kontrol: ## Veritabanı bağlantısını dene
-	.venv/bin/python scripts/db_kontrol.py
+db-check:   ## Try the database connection
+	.venv/bin/python scripts/check_db.py
 
-test:       ## Testleri çalıştır
+test:       ## Run the tests
 	.venv/bin/pytest -v
 
-format:     ## Kodu otomatik düzenle
+format:     ## Auto-format the code
 	.venv/bin/ruff format .
 	.venv/bin/ruff check --fix .
 
-kontrol:    ## CI'daki kontrollerin aynısını yerelde çalıştır
+check:      ## Run the same checks as CI, locally
 	.venv/bin/ruff check .
 	.venv/bin/ruff format --check .
 	.venv/bin/pytest -v

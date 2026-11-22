@@ -1,14 +1,14 @@
-from kobi_asistan.config import ayarlari_yukle
+from kobi_asistan.config import load_settings
 
 
-def test_varsayilan_ayarlar():
-    ayarlar = ayarlari_yukle(env={})
-    assert ayarlar.postgres_host == "localhost"
-    assert ayarlar.postgres_port == 5432
+def test_default_settings():
+    settings = load_settings(env={})
+    assert settings.postgres_host == "localhost"
+    assert settings.postgres_port == 5432
 
 
-def test_veritabani_url_ortam_degiskenlerinden_olusur():
-    ayarlar = ayarlari_yukle(
+def test_database_url_is_built_from_environment():
+    settings = load_settings(
         env={
             "POSTGRES_USER": "u",
             "POSTGRES_PASSWORD": "p",
@@ -17,4 +17,4 @@ def test_veritabani_url_ortam_degiskenlerinden_olusur():
             "POSTGRES_PORT": "6543",
         }
     )
-    assert ayarlar.veritabani_url == "postgresql://u:p@h:6543/d"
+    assert settings.database_url == "postgresql://u:p@h:6543/d"

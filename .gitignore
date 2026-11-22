@@ -1,4 +1,4 @@
-# Sanal ortam ve Python önbellekleri
+# Virtual environment and Python caches
 .venv/
 __pycache__/
 *.pyc
@@ -6,10 +6,10 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
-# Gizli bilgiler: API anahtarları ASLA Git'e girmez
+# Secrets: API keys must NEVER be committed
 .env
 
-# Editör / işletim sistemi
+# Editor / OS
 .vscode/
 .idea/
 .DS_Store

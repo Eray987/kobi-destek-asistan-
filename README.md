@@ -1,70 +1,68 @@
-# KOBİ Destek Asistanı
+# KOBİ Support Assistant
 
-KOBİ'ler için Türkçe, doküman tabanlı müşteri destek asistanı (Bitirme Projesi, 2026–2027).
+A document-grounded customer support assistant for Turkish SMEs (KOBİ), built as a two-semester capstone project (2026–2027).
 
-Asistan müşteri sorularını yalnızca şirketin kendi dokümanlarına dayanarak cevaplar, cevabın kaynağını gösterir ve cevap dokümanlarda yoksa uydurmak yerine müşteriyi temsilciye aktarır. Projenin asıl katkısı, Türkçe bir değerlendirme seti üzerinde farklı RAG tasarım kararlarını (parçalama, hibrit arama, reranker, bilinçli reddetme) karşılaştıran deneylerdir.
+The assistant answers customer questions in Turkish **only from the company's own documents**, cites the source of every answer, and hands the customer over to a human agent instead of guessing when the documents don't contain the answer. The main research contribution is a Turkish evaluation set and controlled experiments comparing RAG design choices: chunking, hybrid search, reranking and abstention.
 
-## Yol haritası
+> 🇹🇷 Türkçe kurulum rehberi: [docs/KURULUM_TR.md](docs/KURULUM_TR.md)
 
-- [x] 1. Repo ve mühendislik altyapısı
-- [ ] 2. Kurgusal mağaza dokümanları + 25 soruluk elle doğrulanmış test seti
-- [ ] 3. Baseline retrieval (yalnızca vektör araması), Recall@5 ve MRR
-- [ ] 4. LLM ile kaynaklı cevap + temsilciye aktarma, FastAPI `/ask` ucu
+## Roadmap
 
-## Klasör yapısı
+- [x] 1. Repository and engineering foundation
+- [ ] 2. Source documents + 25-question hand-verified pilot test set
+- [ ] 3. Baseline retrieval (dense vector search only), Recall@5 and MRR
+- [ ] 4. LLM answers with citations + human hand-off, FastAPI `/ask` endpoint
+
+## Project layout
 
 ```
-src/kobi_asistan/     Uygulamanın Python kodu
-tests/                Otomatik testler (pytest)
-scripts/              Elle çalıştırılan yardımcı betikler
-data/dokumanlar/      Şirket dokümanları (.md)
-data/test_seti/       Soru-cevap değerlendirme seti
-docker/postgres/      Veritabanı ilk açılırken çalışan SQL
-.github/workflows/    GitHub Actions (CI) ayarları
+src/kobi_asistan/     Application code
+tests/                Automated tests (pytest)
+scripts/              Helper scripts run by hand
+data/                 Source list and evaluation set
+docker/postgres/      SQL that runs when the database is first created
+docs/                 Additional documentation
+.github/workflows/    GitHub Actions (CI)
 ```
 
-## Kurulum (macOS)
+## Getting started (macOS / Linux)
 
-Gerekenler: Python 3.11+, Git, [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+Requirements: Python 3.11+, Git, [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
 ```bash
 git clone https://github.com/Eray987/kobi-destek-asistan-.git
 cd kobi-destek-asistan-
 
-cp .env.example .env     # ayar dosyasını oluştur
-make kurulum             # .venv sanal ortamı + bağımlılıklar
-make db-baslat           # Docker ile PostgreSQL + pgvector
-make db-kontrol          # "Bağlantı başarılı" görmelisin
-make test                # tüm testler geçmeli
+cp .env.example .env     # create your local settings file
+make install             # .venv virtual environment + dependencies
+make db-up               # PostgreSQL + pgvector via Docker
+make db-check            # should print "Connected"
+make test                # all tests should pass
 ```
 
-`make` kullanmak istemezsen her hedefin karşılığı `Makefile` içinde açıkça yazıyor.
+Every `make` target is a plain shell command in the [`Makefile`](Makefile) if you prefer to run it directly.
 
-## Hangi araç ne işe yarıyor?
+## Tech stack and why
 
-| Araç | Ne işe yarar? | Neden bu projede? |
-|---|---|---|
-| **Git + GitHub** | Kodun her değişikliğini kaydeder, geri dönmeyi ve paylaşmayı sağlar. | Hoca ve jüri ilerlemeyi commit geçmişinden görebilir. |
-| **Branch + Pull Request** | Her iş ayrı bir dalda yapılır, `main`'e PR ile eklenir. | `main` her zaman çalışan sürüm kalır; değişiklikler gözden geçirilir. |
-| **venv** (`.venv/`) | Projeye özel, izole Python ortamı. | Başka projelerin kütüphaneleriyle çakışmaz. |
-| **pyproject.toml** | Projenin adı, bağımlılıkları ve araç ayarları tek dosyada. | Modern Python projelerinin standart dosyası. |
-| **.env + .env.example** | Şifre ve API anahtarları koddan ayrı tutulur. | `.env` Git'e girmez; anahtar sızdırma riski olmaz. |
-| **Docker + docker compose** | Programı (burada veritabanını) her bilgisayarda aynı şekilde çalışan bir kapta açar. | PostgreSQL ve pgvector'ü Mac'e kurmadan tek komutla çalıştırırız. |
-| **PostgreSQL + pgvector** | İlişkisel veritabanı + vektör saklama ve benzerlik araması eklentisi. | Doküman, sürüm ve embedding'ler aynı yerde tutulur. |
-| **pytest** | Otomatik testler. | Bir değişiklik eski bir şeyi bozduğunda hemen görürüz. Deneylerin tekrarlanabilir olması için de şart. |
-| **ruff** | Kod düzenini ve sık hataları kontrol eder, otomatik biçimlendirir. | Kod tutarlı ve okunabilir kalır. |
-| **GitHub Actions (CI)** | Her push ve PR'da testleri GitHub'ın sunucusunda çalıştırır. | "Benim bilgisayarımda çalışıyordu" sorununu önler. |
-| **Makefile** | Uzun komutlara kısa isimler verir. | `make test` gibi komutlarla herkes projeyi aynı şekilde çalıştırır. |
+| Tool | Purpose |
+|---|---|
+| **Python 3.11+** | Main language; the first RAG baseline is plain Python so every experiment's change stays visible |
+| **PostgreSQL + pgvector** | Documents, versions and embeddings in one database, with vector similarity search |
+| **Docker Compose** | Runs the database identically on any machine with one command |
+| **pytest** | Unit and integration tests; also keeps experiments reproducible |
+| **ruff** | Linting and formatting |
+| **GitHub Actions** | Runs lint and tests (with a real pgvector service) on every push and PR |
+| **`.env` + `.env.example`** | Keeps credentials out of the code and out of Git |
 
-İhtiyaç olmadığı için şimdilik **eklenmeyenler**: Kubernetes, LangChain/LlamaIndex (ilk sürümü düz Python ile yazmak her deneyde neyin değiştiğini görmeyi kolaylaştırır), uygulamanın kendisini Docker'a koymak (API adımında eklenebilir).
+Deliberately **not** used yet: Kubernetes, LangChain/LlamaIndex, containerising the app itself (may come with the API step).
 
-## Günlük çalışma akışı
+## Development workflow
 
 ```bash
-git checkout main && git pull           # en güncel hali al
-git checkout -b ozellik-adi             # yeni dal aç
-# ... kod yaz ...
-make format && make kontrol             # düzenle ve test et
-git add . && git commit -m "Ne yaptığını anlatan mesaj"
-git push -u origin ozellik-adi          # GitHub'da PR aç
+git checkout main && git pull
+git checkout -b my-feature
+# ... write code ...
+make format && make check
+git commit -am "Describe what changed"
+git push -u origin my-feature   # then open a pull request
 ```

@@ -1,3 +1,3 @@
-"""KOBİ'ler için Türkçe, doküman tabanlı müşteri destek asistanı."""
+"""Document-grounded Turkish customer support assistant for SMEs."""
 
 __version__ = "0.1.0"

@@ -1,3 +1,3 @@
--- Veritabanı ilk oluşturulduğunda bir kez çalışır.
--- pgvector eklentisi, embedding vektörlerini saklamamızı ve benzerlik araması yapmamızı sağlar.
+-- Runs once, when the database is first created.
+-- pgvector lets us store embedding vectors and run similarity search.
 CREATE EXTENSION IF NOT EXISTS vector;

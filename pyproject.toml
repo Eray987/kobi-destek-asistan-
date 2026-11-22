@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kobi-asistan"
 version = "0.1.0"
-description = "KOBİ'ler için Türkçe, doküman tabanlı müşteri destek asistanı (RAG)"
+description = "Document-grounded Turkish customer support assistant for SMEs (RAG)"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -25,7 +25,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
-    "db: Çalışan bir PostgreSQL + pgvector gerektiren testler (docker compose up -d)",
+    "db: tests that need a running PostgreSQL + pgvector (docker compose up -d)",
 ]
 
 [tool.ruff]
@@ -33,5 +33,5 @@ line-length = 100
 target-version = "py311"
 
 [tool.ruff.lint]
-# E/F: temel hatalar, I: import sırası, UP: modern Python, B: sık yapılan hatalar
+# E/F: basic errors, I: import order, UP: modern Python, B: common bugs
 select = ["E", "F", "I", "UP", "B"]
