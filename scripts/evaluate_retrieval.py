@@ -1,7 +1,8 @@
-"""Baseline retrieval experiment: fixed-size chunks + dense top-k search.
+"""Retrieval experiment: chunking strategy + dense top-k search.
 
     python scripts/evaluate_retrieval.py                       # defaults below
     python scripts/evaluate_retrieval.py --words 80 --overlap 10 --name small-chunks
+    python scripts/evaluate_retrieval.py --chunking section    # one chunk per FAQ / article
 
 Writes results/retrieval/<name>.json (config, metrics, per-question ranks) and
 results/retrieval/<name>.md (tables + failed questions). Only chunk IDs are saved,
@@ -21,26 +22,53 @@ import numpy as np
 
 from kobi_asistan.data.corpus import load_documents
 from kobi_asistan.data.testset import load
-from kobi_asistan.retrieval.chunking import fixed_size
+from kobi_asistan.retrieval.chunking import STRATEGIES
 from kobi_asistan.retrieval.dense import DenseIndex, SentenceTransformerEmbedder
 from kobi_asistan.retrieval.evaluation import Report, build_report, score_question
 
 ROOT = Path(__file__).resolve().parent.parent
 TESTSET = ROOT / "data" / "testset" / "questions_v0.jsonl"
 OUT_DIR = ROOT / "results" / "retrieval"
+DEFAULTS = {
+    "fixed": {"words": 120, "overlap": 20, "name": "baseline-dense"},
+    "section": {"words": 200, "overlap": 30, "name": "section-dense"},
+}
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     p.add_argument("--model", default="intfloat/multilingual-e5-small")
-    p.add_argument("--words", type=int, default=120, help="chunk size in words")
-    p.add_argument("--overlap", type=int, default=20, help="words shared by neighbouring chunks")
+    p.add_argument(
+        "--chunking",
+        choices=sorted(STRATEGIES),
+        default="fixed",
+        help="fixed: word windows across the document (baseline)\n"
+        "section: one chunk per FAQ entry / article, long ones split",
+    )
+    p.add_argument(
+        "--words",
+        type=int,
+        help="chunk size in words (fixed) or max section size before splitting (section);\n"
+        "default: 120 for fixed, 200 for section",
+    )
+    p.add_argument(
+        "--overlap",
+        type=int,
+        help="words shared by neighbouring windows; default: 20 for fixed, 30 for section",
+    )
     p.add_argument("--k", type=int, default=5, help="number of chunks retrieved per question")
-    p.add_argument("--name", default="baseline-dense", help="name of the result files")
+    p.add_argument(
+        "--name", help="name of the result files; default: baseline-dense / section-dense"
+    )
     p.add_argument(
         "--include-unverified", action="store_true", help="also score unverified questions"
     )
-    return p.parse_args(argv)
+    args = p.parse_args(argv)
+    defaults = DEFAULTS[args.chunking]
+    args.words = args.words if args.words is not None else defaults["words"]
+    args.overlap = args.overlap if args.overlap is not None else defaults["overlap"]
+    args.name = args.name or defaults["name"]
+    return args
 
 
 def to_markdown(report: Report, config: dict) -> str:
@@ -86,7 +114,11 @@ def main(argv: list[str]) -> int:
         and q["supporting_section_ids"]
         and (q["verified"] or args.include_unverified)
     ]
-    chunks = fixed_size(documents, words=args.words, overlap=args.overlap)
+    chunk = STRATEGIES[args.chunking]
+    if args.chunking == "fixed":
+        chunks = chunk(documents, words=args.words, overlap=args.overlap)
+    else:
+        chunks = chunk(documents, max_words=args.words, overlap=args.overlap)
     print(f"{len(documents)} documents -> {len(chunks)} chunks; {len(questions)} questions")
 
     print(f"Loading {args.model} (first run downloads it)...")
@@ -111,7 +143,7 @@ def main(argv: list[str]) -> int:
         "questions_scored": len(questions),
         "retriever": "dense",
         "model": args.model,
-        "chunking": "fixed_size",
+        "chunking": chunk.__name__,
         "chunk_words": args.words,
         "chunk_overlap": args.overlap,
         "num_chunks": len(chunks),
