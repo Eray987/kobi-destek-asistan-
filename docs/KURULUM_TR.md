@@ -37,6 +37,13 @@ bir embedding modeliyle vektöre çevrilir ve her soru için en benzer 5 parça 
 `results/retrieval/` altına yazılır (Recall@5, MRR, kategori bazında tablo ve bulunamayan sorular).
 İlk çalıştırmada model (~470 MB) ve PyTorch indirilir, birkaç dakika sürebilir.
 
+İkinci deney parçalama yöntemlerini karşılaştırır. `--chunking section` her SSS'yi ve her kanun
+maddesini ayrı parça yapar (200 kelimeden uzunsa bölünür, her parçanın başına başlık eklenir):
+
+```bash
+.venv/bin/python scripts/evaluate_retrieval.py --chunking section
+```
+
 ## Hangi araç ne işe yarıyor?
 
 | Araç | Ne işe yarar? | Neden bu projede? |

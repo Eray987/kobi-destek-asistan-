@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from kobi_asistan.data.parsing import Document, Section
-from kobi_asistan.retrieval.chunking import fixed_size
+from kobi_asistan.retrieval.chunking import fixed_size, section_aware
 from kobi_asistan.retrieval.dense import DenseIndex
 from kobi_asistan.retrieval.evaluation import build_report, score_question
 
@@ -86,3 +86,38 @@ def test_metrics_recall_and_mrr():
     assert report.overall.recall_all == 0.5
     assert report.overall.mrr == 1.0
     assert report.failures == []
+
+
+def test_section_aware_makes_one_chunk_per_short_section():
+    chunks = section_aware([_doc()], max_words=50, overlap=5)
+    assert [c.chunk_id for c in chunks] == [
+        "shop-help::faq-1",
+        "shop-help::faq-2",
+        "shop-help::faq-3",
+    ]
+    assert chunks[0].section_keys == ("shop-help#faq-1",)
+    assert chunks[0].text.startswith("İade süresi\n")
+
+
+def test_section_aware_splits_long_sections_and_repeats_the_title():
+    long_doc = Document(
+        doc_id="law",
+        title="Law",
+        sections=[Section("article-1", "Cayma hakkı", " ".join(f"w{i}" for i in range(25)))],
+    )
+    chunks = section_aware([long_doc], max_words=10, overlap=2)
+    assert [c.chunk_id for c in chunks] == [
+        "law::article-1.0",
+        "law::article-1.1",
+        "law::article-1.2",
+    ]
+    assert all(c.text.startswith("Cayma hakkı\n") for c in chunks)
+    assert all(c.section_keys == ("law#article-1",) for c in chunks)
+    # Windows start every 8 words and the last one reaches the end of the text
+    assert chunks[1].text.split()[2] == "w8"
+    assert chunks[-1].text.split()[-1] == "w24"
+
+
+def test_section_aware_rejects_bad_overlap():
+    with pytest.raises(ValueError):
+        section_aware([_doc()], max_words=10, overlap=10)

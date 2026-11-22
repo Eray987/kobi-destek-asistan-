@@ -14,6 +14,8 @@ The assistant answers customer questions in Turkish **only from the company's ow
 - [ ] 3. Baseline retrieval (dense vector search only), Recall@5 and MRR
   - [x] Fixed-size chunking, dense search, evaluation script (`make eval`)
   - [ ] First baseline results committed to `results/retrieval/`
+  - [x] Section-aware chunking (`--chunking section`)
+  - [ ] Chunking comparison results
 - [ ] 4. LLM answers with citations + human hand-off, FastAPI `/ask` endpoint
 
 ## Project layout
@@ -69,7 +71,17 @@ verified answerable question against its gold evidence sections and writes
 - **MRR@k**: mean of 1 / rank of the first chunk containing a gold section
 - p50/p95 query latency, plus a list of failed questions for error analysis
 
-Options: `.venv/bin/python scripts/evaluate_retrieval.py --help` (chunk size, overlap, k, model, run name).
+Experiment 2 compares chunking strategies with the same model and k:
+
+```bash
+make eval                                                     # fixed-size baseline
+.venv/bin/python scripts/evaluate_retrieval.py --chunking section   # one chunk per FAQ / article
+```
+
+Section-aware chunking keeps every FAQ entry and legal article in its own chunk (title + text);
+a section longer than 200 words is split into 200-word windows (30 overlap) that each repeat the title.
+
+Options: `.venv/bin/python scripts/evaluate_retrieval.py --help` (chunking, chunk size, overlap, k, model, run name).
 Result files contain only chunk and section IDs, never company text, so they are safe to commit.
 
 ## Tech stack and why
