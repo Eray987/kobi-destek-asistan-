@@ -44,6 +44,15 @@ maddesini ayrı parça yapar (200 kelimeden uzunsa bölünür, her parçanın ba
 .venv/bin/python scripts/evaluate_retrieval.py --chunking section
 ```
 
+Üçüncü deney arama yöntemlerini karşılaştırır: `dense` (embedding), `bm25` (anahtar kelime) ve
+`hybrid` (ikisinin sıralamasını Reciprocal Rank Fusion ile birleştirir). BM25 Türkçe karakterleri
+sadeleştirir (`ı→i`, `ş→s`), böylece "iade olurmu" gibi Türkçe karaktersiz sorular da eşleşir.
+
+```bash
+make experiments   # 2 parçalama × 3 arama = 6 deney, sonunda karşılaştırma tablosu
+make compare       # kayıtlı tüm sonuçların tablosu
+```
+
 ## Hangi araç ne işe yarıyor?
 
 | Araç | Ne işe yarar? | Neden bu projede? |

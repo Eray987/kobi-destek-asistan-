@@ -1,8 +1,9 @@
-"""Retrieval experiment: chunking strategy + dense top-k search.
+"""Retrieval experiment: chunking strategy + retriever (dense, BM25 or hybrid), top-k.
 
     python scripts/evaluate_retrieval.py                       # defaults below
     python scripts/evaluate_retrieval.py --words 80 --overlap 10 --name small-chunks
     python scripts/evaluate_retrieval.py --chunking section    # one chunk per FAQ / article
+    python scripts/evaluate_retrieval.py --chunking section --retriever hybrid
 
 Writes results/retrieval/<name>.json (config, metrics, per-question ranks) and
 results/retrieval/<name>.md (tables + failed questions). Only chunk IDs are saved,
@@ -25,13 +26,14 @@ from kobi_asistan.data.testset import load
 from kobi_asistan.retrieval.chunking import STRATEGIES
 from kobi_asistan.retrieval.dense import DenseIndex, SentenceTransformerEmbedder
 from kobi_asistan.retrieval.evaluation import Report, build_report, score_question
+from kobi_asistan.retrieval.lexical import BM25Index, HybridIndex
 
 ROOT = Path(__file__).resolve().parent.parent
 TESTSET = ROOT / "data" / "testset" / "questions_v0.jsonl"
 OUT_DIR = ROOT / "results" / "retrieval"
 DEFAULTS = {
-    "fixed": {"words": 120, "overlap": 20, "name": "baseline-dense"},
-    "section": {"words": 200, "overlap": 30, "name": "section-dense"},
+    "fixed": {"words": 120, "overlap": 20, "name": "baseline"},
+    "section": {"words": 200, "overlap": 30, "name": "section"},
 }
 
 
@@ -56,9 +58,16 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         type=int,
         help="words shared by neighbouring windows; default: 20 for fixed, 30 for section",
     )
+    p.add_argument(
+        "--retriever",
+        choices=["dense", "bm25", "hybrid"],
+        default="dense",
+        help="dense: embedding cosine search; bm25: keyword search;\n"
+        "hybrid: both, fused with Reciprocal Rank Fusion",
+    )
     p.add_argument("--k", type=int, default=5, help="number of chunks retrieved per question")
     p.add_argument(
-        "--name", help="name of the result files; default: baseline-dense / section-dense"
+        "--name", help="name of the result files; default: <baseline|section>-<retriever>"
     )
     p.add_argument(
         "--include-unverified", action="store_true", help="also score unverified questions"
@@ -67,7 +76,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     defaults = DEFAULTS[args.chunking]
     args.words = args.words if args.words is not None else defaults["words"]
     args.overlap = args.overlap if args.overlap is not None else defaults["overlap"]
-    args.name = args.name or defaults["name"]
+    args.name = args.name or f"{defaults['name']}-{args.retriever}"
     return args
 
 
@@ -121,11 +130,18 @@ def main(argv: list[str]) -> int:
         chunks = chunk(documents, max_words=args.words, overlap=args.overlap)
     print(f"{len(documents)} documents -> {len(chunks)} chunks; {len(questions)} questions")
 
-    print(f"Loading {args.model} (first run downloads it)...")
-    embedder = SentenceTransformerEmbedder(args.model)
+    embedder = None
+    if args.retriever != "bm25":
+        print(f"Loading {args.model} (first run downloads it)...")
+        embedder = SentenceTransformerEmbedder(args.model)
 
     t0 = time.perf_counter()
-    index = DenseIndex(chunks, embedder)
+    if args.retriever == "dense":
+        index = DenseIndex(chunks, embedder)
+    elif args.retriever == "bm25":
+        index = BM25Index(chunks)
+    else:
+        index = HybridIndex([DenseIndex(chunks, embedder), BM25Index(chunks)])
     index_seconds = time.perf_counter() - t0
 
     results, latencies = [], []
@@ -141,8 +157,8 @@ def main(argv: list[str]) -> int:
         "date": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
         "testset": TESTSET.name,
         "questions_scored": len(questions),
-        "retriever": "dense",
-        "model": args.model,
+        "retriever": args.retriever,
+        "model": args.model if embedder else None,
         "chunking": chunk.__name__,
         "chunk_words": args.words,
         "chunk_overlap": args.overlap,
