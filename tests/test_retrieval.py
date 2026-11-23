@@ -3,8 +3,9 @@ import pytest
 
 from kobi_asistan.data.parsing import Document, Section
 from kobi_asistan.retrieval.chunking import fixed_size, section_aware
-from kobi_asistan.retrieval.dense import DenseIndex
+from kobi_asistan.retrieval.dense import DenseIndex, Hit
 from kobi_asistan.retrieval.evaluation import build_report, score_question
+from kobi_asistan.retrieval.lexical import BM25Index, HybridIndex, tokenize
 
 
 def _doc() -> Document:
@@ -121,3 +122,37 @@ def test_section_aware_splits_long_sections_and_repeats_the_title():
 def test_section_aware_rejects_bad_overlap():
     with pytest.raises(ValueError):
         section_aware([_doc()], max_words=10, overlap=10)
+
+
+def test_tokenize_handles_turkish_case_diacritics_and_suffixes():
+    assert tokenize("İADE Işık şöyle", prefix=None) == ["iade", "isik", "soyle"]
+    # Customers often type without Turkish characters; both sides must match
+    assert tokenize("kulaklığı açtım") == tokenize("kulakligi actim")
+    # Prefix stemming maps inflected forms to the same term
+    assert tokenize("değişim değişimi")[0] == tokenize("degisimler")[0] == "degis"
+
+
+def test_bm25_ranks_the_keyword_match_first():
+    chunks = section_aware([_doc()], max_words=50, overlap=5)
+    index = BM25Index(chunks)
+    assert index.search("kargo firmasi hangisi", k=1)[0].chunk.section_keys == ("shop-help#faq-2",)
+    assert index.search("KREDİ KARTI", k=1)[0].chunk.section_keys == ("shop-help#faq-3",)
+
+
+class _FixedRetriever:
+    def __init__(self, chunks):
+        self.chunks = chunks
+
+    def search(self, query, k=5):
+        return [Hit(c, 1.0) for c in self.chunks[:k]]
+
+
+def test_hybrid_rewards_chunks_ranked_well_by_both_retrievers():
+    a, b, c = section_aware([_doc()], max_words=50, overlap=5)
+    hybrid = HybridIndex([_FixedRetriever([a, b, c]), _FixedRetriever([b, c, a])], rrf_k=1)
+    # b: 1/3 + 1/2, a: 1/2 + 1/4, c: 1/4 + 1/3
+    assert [h.chunk.chunk_id for h in hybrid.search("x", k=3)] == [
+        b.chunk_id,
+        a.chunk_id,
+        c.chunk_id,
+    ]

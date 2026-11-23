@@ -13,9 +13,11 @@ The assistant answers customer questions in Turkish **only from the company's ow
   - [x] Hand-verify all 25 questions (`verified: true`)
 - [ ] 3. Baseline retrieval (dense vector search only), Recall@5 and MRR
   - [x] Fixed-size chunking, dense search, evaluation script (`make eval`)
-  - [ ] First baseline results committed to `results/retrieval/`
+  - [x] First baseline results committed to `results/retrieval/`
   - [x] Section-aware chunking (`--chunking section`)
   - [ ] Chunking comparison results
+  - [x] BM25 and hybrid search (`--retriever bm25|hybrid`, `make experiments`)
+  - [ ] Retriever comparison results
 - [ ] 4. LLM answers with citations + human hand-off, FastAPI `/ask` endpoint
 
 ## Project layout
@@ -81,7 +83,13 @@ make eval                                                     # fixed-size basel
 Section-aware chunking keeps every FAQ entry and legal article in its own chunk (title + text);
 a section longer than 200 words is split into 200-word windows (30 overlap) that each repeat the title.
 
-Options: `.venv/bin/python scripts/evaluate_retrieval.py --help` (chunking, chunk size, overlap, k, model, run name).
+Experiment 3 compares retrievers. `--retriever bm25` is keyword search (Okapi BM25) with Turkish-aware
+lowercasing, ASCII folding (customers often type `iade olurmu` without Turkish letters) and
+5-letter prefix stemming for suffixes. `--retriever hybrid` runs dense and BM25 and fuses the two
+rankings with Reciprocal Rank Fusion. `make experiments` runs every chunking x retriever pair, and
+`make compare` prints one table of all saved runs.
+
+Options: `.venv/bin/python scripts/evaluate_retrieval.py --help` (chunking, retriever, chunk size, overlap, k, model, run name).
 Result files contain only chunk and section IDs, never company text, so they are safe to commit.
 
 ## Tech stack and why

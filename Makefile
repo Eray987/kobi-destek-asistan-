@@ -2,7 +2,7 @@
 #
 # The virtual environment is created automatically on first use.
 # To pick a specific interpreter:  make install PYTHON=python3.12
-.PHONY: install db-up db-down db-check data review eval test format check
+.PHONY: install db-up db-down db-check data review eval experiments compare test format check
 
 PYTHON ?= python3
 VENV := .venv
@@ -40,6 +40,16 @@ review: $(STAMP)   ## Show unverified test-set questions next to their evidence
 
 eval: $(STAMP)     ## Baseline retrieval experiment -> results/retrieval/
 	$(BIN)/python scripts/evaluate_retrieval.py
+
+experiments: $(STAMP)  ## Every chunking x retriever combination, then the comparison table
+	for c in fixed section; do for r in dense bm25 hybrid; do \
+		$(BIN)/python scripts/evaluate_retrieval.py --chunking $$c --retriever $$r > /dev/null || exit 1; \
+		echo "done: $$c + $$r"; \
+	done; done
+	$(BIN)/python scripts/compare_results.py
+
+compare: $(STAMP)  ## Comparison table of all saved runs
+	$(BIN)/python scripts/compare_results.py
 
 test: $(STAMP)     ## Run the tests
 	$(BIN)/pytest -v
